@@ -1,0 +1,177 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Hook : MonoBehaviour
+{
+
+ public LineRenderer rope;
+
+    Vector2 point_00;
+    Vector2 point_10;
+    Vector2 point_11;
+    Vector2 point_01;
+
+
+    float minRotation;
+    float maxRotation;
+    float rotation;
+
+
+    Vector2 hookInitialPos;
+
+    public Rigidbody2D myRB;
+
+    bool hookReleased=false;
+    bool comingBack;
+
+    List<GameObject> rails=new List<GameObject>();
+
+
+    void Start()
+    {
+        hookInitialPos = transform.position;
+        point_01 = VPtoWP(0f, 0f) - new Vector2(-2, 2);
+        point_11 = VPtoWP(1f, 0f) - new Vector2(2, 2);
+        point_00 = point_01 - new Vector2(0, 7);
+        point_10 = point_11 - new Vector2(0, 7);
+
+        StartCoroutine("rotateLeft");
+
+        rope.SetPosition(0, hookInitialPos);
+
+    }
+
+
+    void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Space) && !hookReleased)
+        {
+            StopAllCoroutines();
+            hookReleased = true;
+            myRB.velocity = -5 * transform.up;
+
+        }
+
+
+        rope.SetPosition(1, transform.position);
+    }
+
+
+    private void FixedUpdate()
+    {
+        if(Vector2.Distance(transform.position,hookInitialPos)<.1f && hookReleased && comingBack)
+        {
+            comingBack = false;
+            hookReleased = false;
+            myRB.velocity = Vector2.zero;
+            transform.position = hookInitialPos;
+            StartCoroutine("rotateLeft");
+
+            foreach (var item in rails)
+            {
+                Destroy(item.gameObject);
+            }
+            
+        }
+    }
+
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "border")
+        {
+            comingBack = true;
+            myRB.velocity = (hookInitialPos - (Vector2)transform.position).normalized * 6f;
+
+        }
+
+
+        if (collision.gameObject.tag == "rail")
+        {
+
+            comingBack = true;
+            collision.gameObject.transform.parent = this.transform;
+            rails.Add(collision.gameObject);
+            collision.gameObject.transform.localPosition = new Vector2(0,-.7f);
+            collision.gameObject.transform.localRotation = Quaternion.Euler(0,0,0);
+            collision.gameObject.GetComponent<Collider2D>().enabled = false;
+            myRB.velocity = (hookInitialPos - (Vector2)transform.position).normalized * 6f;
+
+        }
+
+
+
+    }
+
+
+
+
+
+    Vector2 VPtoWP(float x, float y)
+    {
+
+        return Camera.main.ViewportToWorldPoint(new Vector2(x, y));
+
+    }
+
+
+
+
+  
+    IEnumerator rotateLeft()
+    {
+       
+        var presentRot = 60f;
+
+        while (true)
+        {
+
+            if(presentRot<-60f)
+            {
+
+                transform.localRotation = Quaternion.Euler(0, 0, -60f);
+
+                StopCoroutine("rotateLeft");
+                StartCoroutine("rotateRight");
+
+            }
+
+            presentRot -= Time.deltaTime*70f;
+
+            transform.localRotation = Quaternion.Euler(0, 0, presentRot);
+
+            yield return null;
+
+        }
+
+    }
+
+    IEnumerator rotateRight()
+    {
+
+
+        var presentRot = -60f;
+
+        while (true)
+        {
+
+            if (presentRot > 60f)
+            {
+
+                StopCoroutine("rotateRight");
+                StartCoroutine("rotateLeft");
+
+            }
+
+            presentRot += Time.deltaTime*70f;
+
+            transform.localRotation = Quaternion.Euler(0, 0, presentRot);
+
+            yield return null;
+
+        }
+
+    }
+
+}

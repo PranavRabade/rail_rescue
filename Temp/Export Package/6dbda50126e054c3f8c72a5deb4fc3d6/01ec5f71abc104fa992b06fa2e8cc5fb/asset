@@ -1,0 +1,92 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Main : MonoBehaviour
+{
+
+
+    public GameObject bridgeLeft;
+    public GameObject bridgeRight;
+    public GameObject ground;
+    public GameObject hook;
+
+    float bridgeCompSize = 1.766f;
+
+    public GameObject left;
+    public GameObject right;
+
+    // Prefabs
+
+    public GameObject railPart;
+    public GameObject railPartHalf;
+    public GameObject mountain;
+
+
+    public GameObject point_00;
+    public GameObject point_10;
+   public GameObject point_11;
+    public GameObject point_01;
+    
+
+    private void Awake()
+    {
+        setUpCamera(24,0);
+        float width = -1f;
+        bridgeLeft.transform.position = VPtoWP(.5f, 0f) - new Vector2(7 + width, -1);
+        bridgeRight.transform.position = VPtoWP(.5f, 0f) + new Vector2(7 + width, 1);
+        ground.transform.position = VPtoWP(.5f, 0f) + new Vector2(0, 1);
+        mountain.transform.position = VPtoWP(.5f, 0f);
+        hook.transform.position = VPtoWP(.5f, 0f) + new Vector2(0, 1f);
+        point_01.transform.position = VPtoWP(0f, 0f) - new Vector2(-2, 2);
+        point_11.transform.position = VPtoWP(1f, 0f) - new Vector2(2, 2);
+        point_00.transform.position = point_01.transform.position - new Vector3(0, 7, 0);
+        point_10.transform.position = point_11.transform.position - new Vector3(0, 7, 0);
+    }
+
+    void Start()
+    {
+
+        
+
+        for (int i = 0; i < 11; i++)
+        {
+            Instantiate(railPartHalf, left.transform.parent.transform.position+new Vector3(.4f,0f,0f) + new Vector3((i+1)*(bridgeCompSize/2f), 0, 0), Quaternion.identity);
+        }
+
+
+       
+
+        buildBorderCollider();
+    }
+
+    void Update()
+    {
+       
+    }
+
+
+    Vector2 VPtoWP(float x,float y)
+    {
+
+        return Camera.main.ViewportToWorldPoint(new Vector2(x,y));
+
+    }
+
+
+    void setUpCamera(float width, float height)     {         float aspectRatio = (float)Screen.width / (float)Screen.height;         float verticalSize = (float)height / 2f;         float horizontalSize = ((float)width / 2f) / aspectRatio;         Camera.main.orthographicSize = (verticalSize > horizontalSize) ? verticalSize : horizontalSize;      }        void buildBorderCollider()
+    {
+
+        var edgeCollider = new GameObject("Edge Collider");
+        var edge = edgeCollider.AddComponent<EdgeCollider2D>();
+        Vector2[] points = { point_01.transform.position,point_00.transform.position,point_10.transform.position,point_11.transform.position };
+        edge.points = points;
+
+        edgeCollider.tag = "border";
+
+    }        
+  
+
+
+
+}
